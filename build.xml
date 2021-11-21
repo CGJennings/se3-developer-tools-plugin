@@ -73,6 +73,8 @@
     -->
 <property environment="env"/>
 <target name="-post-jar">
-    <copy file="${dist.dir}/Developer Tools Plug-in.jar" tofile="${env.APPDATA}/StrangeEons3/plug-ins/DeveloperTools.seplugin"/>
+    <copy file="${dist.dir}/Developer Tools Plug-in.jar" tofile="${dist.dir}/DeveloperTools.seplugin" />
+    <copy file="${dist.dir}/DeveloperTools.seplugin" todir="${env.APPDATA}/StrangeEons3/plug-ins" failonerror="false" quiet="true" />
+    <delete file="${dist.dir}/Developer Tools Plug-in.jar" />
 </target>
 </project>
