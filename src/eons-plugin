@@ -1,0 +1,27 @@
+##
+## Developer Tools
+##
+
+id = CATALOGUEID{39f10fa9-6574-4be1-9dd6-3e658c9a6fd3:2013-8-20-00-00-00-000}
+
+ca.cgjennings.apps.arkham.plugins.DeveloperTools
+
+catalog-minver = 3708
+
+catalog-name = Developer Tools
+catalog-description = Additional tools that support plug-in development, \
+    including a memory use monitor, cache manager, setting explorer, \
+    plug-in catalog tools, and the <b>Region Boxes</b> view menu item. \
+    <p><b>Recent changes:</b><ol>\
+    <li>Added <b>Log Viewer</b> to review application log entries.\
+    <li>All of the tools are now controlled through a single plug-in instead of \
+        having multiple plug-ins in a single bundle.\
+    <li>The utility windows have been moved to the <b>Window</b> menu.\
+    <li>Window icons updated to match other tracked windows.\
+    <li>Catalog tools now support LZMA compressed bundles.\
+    <li>Catalog tools will not overwrite bundles with a newer timestamp unless \
+        a forcing option is set.\
+    <li>Catalog tools recognize when a bundle's file name changes.</ol>\
+    <p><b>Note:</b> If you have an existing catalog tools task, you can update \
+    it by creating a new task and copying the <tt>.ajs</tt> script files into the \
+    existing task folder.
