@@ -17,110 +17,117 @@ import resources.ResourceKit;
  */
 final class CacheManagerPanel extends javax.swing.JPanel {
 
-	/** Creates new form CacheManagerPanel */
-	public CacheManagerPanel( ToolWindow tw ) {
-		initComponents();
-		install( tw );
-		reload();
-	}
+    /**
+     * Creates new form CacheManagerPanel
+     */
+    public CacheManagerPanel(ToolWindow tw) {
+        initComponents();
+        install(tw);
+        reload();
+    }
 
-	private ToolWindow owner;
+    private ToolWindow owner;
 
-	void install( ToolWindow tw ) {
-		owner = tw;
-		tw.setBody( this );
-		tw.pack();
-		tw.addComponentListener( new ComponentAdapter() {
-			@Override
-			public void componentShown( ComponentEvent e ) {
-				windowVisible();
-			}
-			@Override
-			public void componentHidden( ComponentEvent e ) {
-				windowHidden();
-			}
-		});
-	}
+    void install(ToolWindow tw) {
+        owner = tw;
+        tw.setBody(this);
+        tw.pack();
+        tw.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                windowVisible();
+            }
 
-	private void windowVisible() {
-		reload();
-		updateCachePanel();
-		updateTimer.start();
-	}
+            @Override
+            public void componentHidden(ComponentEvent e) {
+                windowHidden();
+            }
+        });
+    }
 
-	private void windowHidden() {
-		updateTimer.stop();
-	}
+    private void windowVisible() {
+        reload();
+        updateCachePanel();
+        updateTimer.start();
+    }
 
-	private void reload() {
-		CacheMetrics[] metrics = ResourceKit.getRegisteredCacheMetrics();
-		if( model.getSize() == metrics.length ) {
-			int i;
-			for( i=0; i<metrics.length; ++i ) {
-				if( metrics[i] != (CacheMetrics) model.get( i ) ) break;
-			}
-			// the list of metrics hasn't changed; exit
-			if( i == metrics.length ) {
-				return;
-			}
-		}
+    private void windowHidden() {
+        updateTimer.stop();
+    }
 
-		// if we reach here, then the current list of metrics instances is
-		// different and we need to update the list
-		Object selection = cacheList.getSelectedValue();
-		model.removeAllElements();
-		for( int i=0; i<metrics.length; ++i ) {
-			model.addElement( metrics[i] );
-		}
-		cacheList.setSelectedValue( selection, true );
-		if( cacheList.getSelectedIndex() < 0 ) {
-			cacheList.setSelectedIndex(0);
-		}
-	}
-	private DefaultListModel model = new DefaultListModel();
+    private void reload() {
+        CacheMetrics[] metrics = ResourceKit.getRegisteredCacheMetrics();
+        if (model.getSize() == metrics.length) {
+            int i;
+            for (i = 0; i < metrics.length; ++i) {
+                if (metrics[i] != (CacheMetrics) model.get(i)) {
+                    break;
+                }
+            }
+            // the list of metrics hasn't changed; exit
+            if (i == metrics.length) {
+                return;
+            }
+        }
 
-	private void updateCachePanel() {
-		CacheMetrics cm = (CacheMetrics) cacheList.getSelectedValue();
-		if( cm == null ) return;
+        // if we reach here, then the current list of metrics instances is
+        // different and we need to update the list
+        Object selection = cacheList.getSelectedValue();
+        model.removeAllElements();
+        for (int i = 0; i < metrics.length; ++i) {
+            model.addElement(metrics[i]);
+        }
+        cacheList.setSelectedValue(selection, true);
+        if (cacheList.getSelectedIndex() < 0) {
+            cacheList.setSelectedIndex(0);
+        }
+    }
+    private DefaultListModel model = new DefaultListModel();
 
-		cacheNameLabel.setText( cm.toString() );
-		typeLabel.setText( cm.getContentType().getSimpleName() );
-		objLabel.setText( formatter.format( cm.getItemCount() ) );
-		String size;
-		long bytes = cm.getByteSize();
-		if( bytes < 0 ) {
-			size = "Unknown";
-		} else {
-			size = ProjectUtilities.formatByteSize( bytes );
-		}
-		sizeLabel.setText( size );
-		clearBtn.setEnabled( cm.isClearSupported() );
-	}
+    private void updateCachePanel() {
+        CacheMetrics cm = (CacheMetrics) cacheList.getSelectedValue();
+        if (cm == null) {
+            return;
+        }
 
-	private NumberFormat formatter = NumberFormat.getIntegerInstance();
+        cacheNameLabel.setText(cm.toString());
+        typeLabel.setText(cm.getContentType().getSimpleName());
+        objLabel.setText(formatter.format(cm.getItemCount()));
+        String size;
+        long bytes = cm.getByteSize();
+        if (bytes < 0) {
+            size = "Unknown";
+        } else {
+            size = ProjectUtilities.formatByteSize(bytes);
+        }
+        sizeLabel.setText(size);
+        clearBtn.setEnabled(cm.isClearSupported());
+    }
 
-	private static final int UPDATE_DELAY = 3000;
+    private NumberFormat formatter = NumberFormat.getIntegerInstance();
 
-	private Timer updateTimer = new Timer( UPDATE_DELAY, new ActionListener() {
-		@Override
-		public void actionPerformed( ActionEvent e ) {
-			if( isVisible() ) {
-				updateCachePanel();
-				if( ++callNum == 10 ) {
-					callNum = 0;
-					reload();
-				}
-			}
-		}
-		private int callNum=0;
-	});
+    private static final int UPDATE_DELAY = 3000;
 
-	/** This method is called from within the constructor to
-	 * initialize the form.
-	 * WARNING: Do NOT modify this code. The content of this method is
-	 * always regenerated by the Form Editor.
-	 */
-	@SuppressWarnings( "unchecked" )
+    private Timer updateTimer = new Timer(UPDATE_DELAY, new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (isVisible()) {
+                updateCachePanel();
+                if (++callNum == 10) {
+                    callNum = 0;
+                    reload();
+                }
+            }
+        }
+        private int callNum = 0;
+    });
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -257,14 +264,14 @@ final class CacheManagerPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
 	private void cacheListValueChanged( javax.swing.event.ListSelectionEvent evt ) {//GEN-FIRST:event_cacheListValueChanged
-		updateCachePanel();
+            updateCachePanel();
 	}//GEN-LAST:event_cacheListValueChanged
 
 	private void clearBtnActionPerformed( java.awt.event.ActionEvent evt ) {//GEN-FIRST:event_clearBtnActionPerformed
-		CacheMetrics cm = (CacheMetrics) cacheList.getSelectedValue();
-		if( cm != null && cm.isClearSupported() ) {
-			cm.clear();
-		}
+            CacheMetrics cm = (CacheMetrics) cacheList.getSelectedValue();
+            if (cm != null && cm.isClearSupported()) {
+                cm.clear();
+            }
 	}//GEN-LAST:event_clearBtnActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

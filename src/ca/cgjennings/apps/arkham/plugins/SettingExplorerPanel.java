@@ -52,158 +52,159 @@ import resources.Settings;
  * @version 1.0
  */
 final class SettingExplorerPanel extends javax.swing.JPanel {
-	public SettingExplorerPanel( ToolWindow owner ) {
-		initComponents();
-		table.setModel( model );
-		table.getRowSorter().setSortKeys( Collections.singletonList( new RowSorter.SortKey( 0, SortOrder.ASCENDING ) ) );
-		table.getSelectionModel().addListSelectionListener( new ListSelectionListener() {
-			@Override
-			public void valueChanged( ListSelectionEvent e ) {
-				refreshTree();
-			}
-		});
-		table.setDefaultRenderer( Object.class, new DefaultTableCellRenderer() {
-			@Override
-			public Component getTableCellRendererComponent( JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column ) {
-				super.getTableCellRendererComponent( table, value, isSelected, hasFocus, row, column );
-				// use a different colour for inherited keys
-				if( current != null ) {
-					if( bold == null ) {
-						regular = getFont();
-						bold = regular.deriveFont( Font.BOLD );
-					}
-					String key = table.getValueAt( row, table.convertColumnIndexToView(0) ).toString();
-					if( current.getOverride(key) == null ) {
-						setFont( regular );
-						setForeground( Color.LIGHT_GRAY );
-					} else {
-						setFont( bold );
-						setForeground( Color.WHITE );
-					}
-				}
-				setToolTipText( String.valueOf( value ) );
-				return this;
-			}
-			private Font regular, bold;
-		});
 
-		owner.addWindowFocusListener( new WindowFocusListener() {
-			@Override
-			public void windowGainedFocus( WindowEvent e ) {
-				backgroundUpdater.stop();
-				refreshTable();
-			}
-			@Override
-			public void windowLostFocus( WindowEvent e ) {
-				backgroundUpdater.start();
-				if( editedSinceLastFocusLost ) {
-					editedSinceLastFocusLost = false;
-					StrangeEons.getWindow().redrawPreviews();
-				}
-			}
-		});
+    public SettingExplorerPanel(ToolWindow owner) {
+        initComponents();
+        table.setModel(model);
+        table.getRowSorter().setSortKeys(Collections.singletonList(new RowSorter.SortKey(0, SortOrder.ASCENDING)));
+        table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                refreshTree();
+            }
+        });
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                // use a different colour for inherited keys
+                if (current != null) {
+                    if (bold == null) {
+                        regular = getFont();
+                        bold = regular.deriveFont(Font.BOLD);
+                    }
+                    String key = table.getValueAt(row, table.convertColumnIndexToView(0)).toString();
+                    if (current.getOverride(key) == null) {
+                        setFont(regular);
+                        setForeground(Color.LIGHT_GRAY);
+                    } else {
+                        setFont(bold);
+                        setForeground(Color.WHITE);
+                    }
+                }
+                setToolTipText(String.valueOf(value));
+                return this;
+            }
+            private Font regular, bold;
+        });
 
-		owner.addWindowListener( new WindowAdapter() {
-			@Override
-			public void windowOpened( WindowEvent e ) {
-				// decide what to pick as default: project if project view has focus,
-				// game component if current tab has one, or else shared prefs
-				int sel = 2; // sahred prefs
-				Project p = StrangeEons.getOpenProject();
-				if( p != null && p.getView() != null && p.getView().isFocusOwner() ) {
-					sel = 0; // project
-				} else {
-					StrangeEonsEditor ed = StrangeEons.getWindow().getActiveEditor();
-					if( ed != null && ed.getGameComponent() != null ) {
-						sel = 4; // game component
-					}
-				}
-				source.setSelectedIndex( sel );
-			}
-		});
+        owner.addWindowFocusListener(new WindowFocusListener() {
+            @Override
+            public void windowGainedFocus(WindowEvent e) {
+                backgroundUpdater.stop();
+                refreshTable();
+            }
 
-		filterfield.getDocument().addDocumentListener( new DocumentEventAdapter() {
-			@Override
-			public void changedUpdate( DocumentEvent e ) {
-				EventQueue.invokeLater( updateFilter );
-			}
-		});
-	}
+            @Override
+            public void windowLostFocus(WindowEvent e) {
+                backgroundUpdater.start();
+                if (editedSinceLastFocusLost) {
+                    editedSinceLastFocusLost = false;
+                    StrangeEons.getWindow().redrawPreviews();
+                }
+            }
+        });
 
-	private Runnable updateFilter = new Runnable() {
-		@Override
-		public void run() {
-			String text = filterfield.getText();
-			if( !text.equals( currentFilterText ) ) {
-				RowFilter newFilter = null;
-				if( !text.isEmpty() ) {
-					newFilter = RowFilter.regexFilter( text );
-				}
-				((TableRowSorter) table.getRowSorter()).setRowFilter( newFilter );
-				currentFilterText = text;
-			}
-		}
-	};
+        owner.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+                // decide what to pick as default: project if project view has focus,
+                // game component if current tab has one, or else shared prefs
+                int sel = 2; // sahred prefs
+                Project p = StrangeEons.getOpenProject();
+                if (p != null && p.getView() != null && p.getView().isFocusOwner()) {
+                    sel = 0; // project
+                } else {
+                    StrangeEonsEditor ed = StrangeEons.getWindow().getActiveEditor();
+                    if (ed != null && ed.getGameComponent() != null) {
+                        sel = 4; // game component
+                    }
+                }
+                source.setSelectedIndex(sel);
+            }
+        });
 
-	private String currentFilterText = "";
+        filterfield.getDocument().addDocumentListener(new DocumentEventAdapter() {
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                EventQueue.invokeLater(updateFilter);
+            }
+        });
+    }
 
-	private Timer backgroundUpdater = new Timer( 250, new ActionListener() {
-		@Override
-		public void actionPerformed( ActionEvent e ) {
-			Settings next = determineSettingsForSelection();
-			if( next != current ) {
-				refreshTable();
-			}
-		}
-	});
+    private Runnable updateFilter = new Runnable() {
+        @Override
+        public void run() {
+            String text = filterfield.getText();
+            if (!text.equals(currentFilterText)) {
+                RowFilter newFilter = null;
+                if (!text.isEmpty()) {
+                    newFilter = RowFilter.regexFilter(text);
+                }
+                ((TableRowSorter) table.getRowSorter()).setRowFilter(newFilter);
+                currentFilterText = text;
+            }
+        }
+    };
 
-	/**
-	 * Returns the set of keys to list for the settings to be displayed.
-	 * The value returned depends on the parent combo box's selected value.
-	 * @param s the settings to display
-	 * @return
-	 */
-	private Set<String> makeKeySet( Settings s ) {
-		if( s == getDefaultSettings() ) {
-			// because we use a standard Settings instance to simulate this,
-			// it will have Shared as its parent; we need to return
-			// just the immediate key set so that keys from this fake
-			// parent are never included
-			return s.getKeySet();
-		}
+    private String currentFilterText = "";
 
-		int include = parentCombo.getSelectedIndex();
+    private Timer backgroundUpdater = new Timer(250, new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Settings next = determineSettingsForSelection();
+            if (next != current) {
+                refreshTable();
+            }
+        }
+    });
 
-		Set<String> keys;
-		switch( include ) {
-			case -1:
-			case 0:
-				keys = s.getKeySet();
-				break;
-			case 1:
-				keys = new HashSet<String>( s.getKeySet() );
-				Settings p = getParent( s );
-				if( p != null ) {
-					keys.addAll( p.getKeySet() );
-				}
-				break;
-			case 2:
-				keys = s.getVisibleKeySet();
-				break;
-			default:
-				throw new AssertionError();
-		}
-		return keys;
-	}
+    /**
+     * Returns the set of keys to list for the settings to be displayed. The
+     * value returned depends on the parent combo box's selected value.
+     *
+     * @param s the settings to display
+     * @return
+     */
+    private Set<String> makeKeySet(Settings s) {
+        if (s == getDefaultSettings()) {
+            // because we use a standard Settings instance to simulate this,
+            // it will have Shared as its parent; we need to return
+            // just the immediate key set so that keys from this fake
+            // parent are never included
+            return s.getKeySet();
+        }
 
+        int include = parentCombo.getSelectedIndex();
 
+        Set<String> keys;
+        switch (include) {
+            case -1:
+            case 0:
+                keys = s.getKeySet();
+                break;
+            case 1:
+                keys = new HashSet<String>(s.getKeySet());
+                Settings p = getParent(s);
+                if (p != null) {
+                    keys.addAll(p.getKeySet());
+                }
+                break;
+            case 2:
+                keys = s.getVisibleKeySet();
+                break;
+            default:
+                throw new AssertionError();
+        }
+        return keys;
+    }
 
-	/**
-	 * This method is called from within the constructor to initialize the form.
-	 * WARNING: Do NOT modify this code. The content of this method is always
-	 * regenerated by the Form Editor.
-	 */
-	@SuppressWarnings( "unchecked" )
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
@@ -389,183 +390,201 @@ final class SettingExplorerPanel extends javax.swing.JPanel {
         add(tableTreeSplitter, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
-	// this will be attached to the currently view settings to update the table
-	// automatically as its settings change
-	private PropertyChangeListener refreshListener = new PropertyChangeListener() {
-		@Override
-		public void propertyChange( PropertyChangeEvent evt ) {
-			if( evt.getSource() == current ) {
-				String key = evt.getPropertyName();
-				String val = (String) evt.getNewValue();
-				int row;
-				for( row=0; row<model.getRowCount(); ++row ) {
-					if( key.equals( model.getValueAt( row, 0 ) ) ) {
-						// we found the row matching the key that changed
-						if( val == null ) {
-							// it was deleted
-							model.removeRow(row);
-						} else {
-							// the value changed
-							model.setValueAt( val, row, 1 );
-						}
-						// no matter what happened, we're done since we found the key
-						return;
-					}
-				}
-				// we didn't find the key, this must have just been added
-				model.addRow( new Object[] { key, val } );
-			}
-		}
-	};
+    // this will be attached to the currently view settings to update the table
+    // automatically as its settings change
+    private PropertyChangeListener refreshListener = new PropertyChangeListener() {
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (evt.getSource() == current) {
+                String key = evt.getPropertyName();
+                String val = (String) evt.getNewValue();
+                int row;
+                for (row = 0; row < model.getRowCount(); ++row) {
+                    if (key.equals(model.getValueAt(row, 0))) {
+                        // we found the row matching the key that changed
+                        if (val == null) {
+                            // it was deleted
+                            model.removeRow(row);
+                        } else {
+                            // the value changed
+                            model.setValueAt(val, row, 1);
+                        }
+                        // no matter what happened, we're done since we found the key
+                        return;
+                    }
+                }
+                // we didn't find the key, this must have just been added
+                model.addRow(new Object[]{key, val});
+            }
+        }
+    };
 
-	private Settings determineSettingsForSelection() {
+    private Settings determineSettingsForSelection() {
         int sel = source.getSelectedIndex();
-		if( sel < 0 ) return null;
+        if (sel < 0) {
+            return null;
+        }
 
-		Settings next = null;
-		switch( sel ) {
-			case 0: next = getProjectSettings(); break;
-			case 1: next = getDefaultSettings(); break;
-			case 2: next = getShared(); break;
-			case 3: next = getGameSettings(); break;
-			case 4: next = getComponentSettings(); break;
-			case 5: next = getUser(); break;
-		}
+        Settings next = null;
+        switch (sel) {
+            case 0:
+                next = getProjectSettings();
+                break;
+            case 1:
+                next = getDefaultSettings();
+                break;
+            case 2:
+                next = getShared();
+                break;
+            case 3:
+                next = getGameSettings();
+                break;
+            case 4:
+                next = getComponentSettings();
+                break;
+            case 5:
+                next = getUser();
+                break;
+        }
 
-		if( next != null ) {
-			settingsInstanceName.setText( lastName );
-		} else {
-			settingsInstanceName.setText( "<None>" );
-		}
+        if (next != null) {
+            settingsInstanceName.setText(lastName);
+        } else {
+            settingsInstanceName.setText("<None>");
+        }
 
-		return next;
-	}
+        return next;
+    }
 
-	private void refreshTree() {
-		String key = null;
-		int row = table.getSelectedRow();
-		if( row >= 0 ) {
-			key = (String) table.getValueAt( row, table.convertColumnIndexToView(0) );
-		}
+    private void refreshTree() {
+        String key = null;
+        int row = table.getSelectedRow();
+        if (row >= 0) {
+            key = (String) table.getValueAt(row, table.convertColumnIndexToView(0));
+        }
 
-		LinkedList<String> stack = new LinkedList<String>();
-		if( key != null ) {
-			Settings node = current;
-			while( node != null ) {
-				String value = node.getOverride( key );
-				if( value == null ) value = "<Not defined>";
-				String lastNameTemp = lastName;
-				String shortName = null;
+        LinkedList<String> stack = new LinkedList<String>();
+        if (key != null) {
+            Settings node = current;
+            while (node != null) {
+                String value = node.getOverride(key);
+                if (value == null) {
+                    value = "<Not defined>";
+                }
+                String lastNameTemp = lastName;
+                String shortName = null;
 
-				boolean checkGlobal = false;
-				if( node == getDefaultSettings() ) {
-					shortName = " [Default]";
-				} else if( node == getUser() ) {
-					shortName = " [User]";
-				} else if( node == getShared() ) {
-					shortName = " [Shared]";
-					checkGlobal = true;
-				}
+                boolean checkGlobal = false;
+                if (node == getDefaultSettings()) {
+                    shortName = " [Default]";
+                } else if (node == getUser()) {
+                    shortName = " [User]";
+                } else if (node == getShared()) {
+                    shortName = " [Shared]";
+                    checkGlobal = true;
+                }
 
-				lastName = lastNameTemp;
-				if( shortName != null ) value += shortName;
-				stack.push( value );
+                lastName = lastNameTemp;
+                if (shortName != null) {
+                    value += shortName;
+                }
+                stack.push(value);
 
-				if( checkGlobal ) {
-					String global = SettingExplorerProxy.globalOverride( key, def.get(key) );
-					if( global != null ) {
-						stack.push( global + " [Global (plug-in default)]" );
-					}
-				}
+                if (checkGlobal) {
+                    String global = SettingExplorerProxy.globalOverride(key, def.get(key));
+                    if (global != null) {
+                        stack.push(global + " [Global (plug-in default)]");
+                    }
+                }
 
-				node = getParent( node );
-			}
-		}
+                node = getParent(node);
+            }
+        }
 
-		StringBuilder b = new StringBuilder( 256 );
-		if( key != null ) {
-			b.append( key ).append( "\n\n" );
-		}
-		int level = 0;
-		while( !stack.isEmpty() ) {
-			String value = stack.pop();
-			if( level > 0 ) {
-				for( int i=0; i<level; ++i ) {
-					b.append( "\u00a0\u00a0" );
-				}
-				b.append( "\u2514 " );
-			}
-			b.append( value ).append( '\n' );
-			++level;
-		}
+        StringBuilder b = new StringBuilder(256);
+        if (key != null) {
+            b.append(key).append("\n\n");
+        }
+        int level = 0;
+        while (!stack.isEmpty()) {
+            String value = stack.pop();
+            if (level > 0) {
+                for (int i = 0; i < level; ++i) {
+                    b.append("\u00a0\u00a0");
+                }
+                b.append("\u2514 ");
+            }
+            b.append(value).append('\n');
+            ++level;
+        }
 
-		tree.setText( b.toString() );
-		tree.select( 0, 0 );
-	}
+        tree.setText(b.toString());
+        tree.select(0, 0);
+    }
 
-	private void refreshTable() {
-		Settings next = determineSettingsForSelection();
+    private void refreshTable() {
+        Settings next = determineSettingsForSelection();
 
-		if( current != null ) {
-			current.removePropertyChangeListener( refreshListener );
-		}
+        if (current != null) {
+            current.removePropertyChangeListener(refreshListener);
+        }
 
-		String selectedKey = null;
-		int row = table.getSelectedRow();
-		if( row >= 0 ) {
-			selectedKey = (String) table.getValueAt( row, table.convertColumnIndexToView(0) );
-		}
+        String selectedKey = null;
+        int row = table.getSelectedRow();
+        if (row >= 0) {
+            selectedKey = (String) table.getValueAt(row, table.convertColumnIndexToView(0));
+        }
 
-		model.setRowCount(0);
+        model.setRowCount(0);
 
-		int selectedRow = -1;
-		if( next != null ) {
-			for( String k : makeKeySet( next ) ) {
-				if( k.equals( selectedKey ) ) {
-					selectedRow = model.getRowCount();
-				}
-				model.addRow( new Object[] { k, next.get(k) } );
-			}
-		}
+        int selectedRow = -1;
+        if (next != null) {
+            for (String k : makeKeySet(next)) {
+                if (k.equals(selectedKey)) {
+                    selectedRow = model.getRowCount();
+                }
+                model.addRow(new Object[]{k, next.get(k)});
+            }
+        }
 
-		if( selectedRow == -1 ) {
-			table.getSelectionModel().clearSelection();
-		} else {
-			selectedRow = table.convertRowIndexToView( selectedRow );
-			table.getSelectionModel().setSelectionInterval( selectedRow, selectedRow );
-			table.scrollRectToVisible( table.getCellRect( selectedRow, table.convertColumnIndexToView(0), true ) );
-		}
+        if (selectedRow == -1) {
+            table.getSelectionModel().clearSelection();
+        } else {
+            selectedRow = table.convertRowIndexToView(selectedRow);
+            table.getSelectionModel().setSelectionInterval(selectedRow, selectedRow);
+            table.scrollRectToVisible(table.getCellRect(selectedRow, table.convertColumnIndexToView(0), true));
+        }
 
-		current = next;
-		if( next != null ) {
-			next.addPropertyChangeListener( refreshListener );
-		}
+        current = next;
+        if (next != null) {
+            next.addPropertyChangeListener(refreshListener);
+        }
 
-		refreshTree();
-	}
-	private Settings current;
+        refreshTree();
+    }
+    private Settings current;
 
     private void sourceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sourceActionPerformed
-		refreshTable();
+        refreshTable();
     }//GEN-LAST:event_sourceActionPerformed
 
     private void tableKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tableKeyPressed
         int code = evt.getKeyCode();
-		if( code == KeyEvent.VK_DELETE || code == KeyEvent.VK_BACK_SPACE ) {
-			evt.consume();
-			int row = table.getSelectedRow();
-			if( row < 0 ) {
-				UIManager.getLookAndFeel().provideErrorFeedback( table );
-				return;
-			}
-			if( current == getDefaultSettings() ) {
-				JOptionPane.showMessageDialog( this, "Default settings cannot be modified.", "Delete Key", JOptionPane.PLAIN_MESSAGE );
-				return;
-			}
-			if( JOptionPane.showConfirmDialog( this, "Delete the key " + table.getValueAt( row, table.convertColumnIndexToView(0) ) + '?', "Delete Key", JOptionPane.WARNING_MESSAGE ) == JOptionPane.YES_OPTION ) {
-				table.setValueAt( null, row, table.convertColumnIndexToView(1) );
-			}
-		}
+        if (code == KeyEvent.VK_DELETE || code == KeyEvent.VK_BACK_SPACE) {
+            evt.consume();
+            int row = table.getSelectedRow();
+            if (row < 0) {
+                UIManager.getLookAndFeel().provideErrorFeedback(table);
+                return;
+            }
+            if (current == getDefaultSettings()) {
+                JOptionPane.showMessageDialog(this, "Default settings cannot be modified.", "Delete Key", JOptionPane.PLAIN_MESSAGE);
+                return;
+            }
+            if (JOptionPane.showConfirmDialog(this, "Delete the key " + table.getValueAt(row, table.convertColumnIndexToView(0)) + '?', "Delete Key", JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION) {
+                table.setValueAt(null, row, table.convertColumnIndexToView(1));
+            }
+        }
     }//GEN-LAST:event_tableKeyPressed
 
     private void parentComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_parentComboActionPerformed
@@ -586,151 +605,155 @@ final class SettingExplorerPanel extends javax.swing.JPanel {
     private javax.swing.JPanel treePanel;
     // End of variables declaration//GEN-END:variables
 
-	private DefaultTableModel model = new DefaultTableModel( new Object[] { "Key", "Value" }, 0 ) {
-		@Override
-		public boolean isCellEditable( int row, int column ) {
-			if( current == getDefaultSettings() ) {
-				return false;
-			}
-			return true;
-		}
+    private DefaultTableModel model = new DefaultTableModel(new Object[]{"Key", "Value"}, 0) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            if (current == getDefaultSettings()) {
+                return false;
+            }
+            return true;
+        }
 
-		@Override
-		public void setValueAt( Object oValue, int row, int column ) {
-			String newValue = oValue == null ? null : oValue.toString().trim();
+        @Override
+        public void setValueAt(Object oValue, int row, int column) {
+            String newValue = oValue == null ? null : oValue.toString().trim();
 
-			// can't have empty key name
-			if( column == 0 && (newValue == null || newValue.isEmpty()) ) {
-				UIManager.getLookAndFeel().provideErrorFeedback( table );
-				return;
-			}
+            // can't have empty key name
+            if (column == 0 && (newValue == null || newValue.isEmpty())) {
+                UIManager.getLookAndFeel().provideErrorFeedback(table);
+                return;
+            }
 
-			if( newValue == null || !newValue.equals( getValueAt( row, column ) ) ) {
-				if( newValue != null ) super.setValueAt( newValue, row, column );
+            if (newValue == null || !newValue.equals(getValueAt(row, column))) {
+                if (newValue != null) {
+                    super.setValueAt(newValue, row, column);
+                }
 
-				String key = getValueAt( row, 0 ).toString();
-				String val = newValue == null ? null : getValueAt( row, 1 ).toString();
+                String key = getValueAt(row, 0).toString();
+                String val = newValue == null ? null : getValueAt(row, 1).toString();
 
-				if( current == getShared() ) {
-					if( val == null ) {
-						UIManager.getLookAndFeel().provideErrorFeedback( table );
-						return;
-					} else {
-						RawSettings.setGlobalSetting( key, val );
-					}
-				} else {
-					if( val == null ) {
-						current.reset( key );
-					} else {
-						current.set( key, val );
-					}
-				}
+                if (current == getShared()) {
+                    if (val == null) {
+                        UIManager.getLookAndFeel().provideErrorFeedback(table);
+                        return;
+                    } else {
+                        RawSettings.setGlobalSetting(key, val);
+                    }
+                } else {
+                    if (val == null) {
+                        current.reset(key);
+                    } else {
+                        current.set(key, val);
+                    }
+                }
 
-				// don't redraw for projects!
-				if( source.getSelectedIndex() > 0 ) {
-					editedSinceLastFocusLost = true;
-					if( editMayAffectEditedComponent( key ) ) {
-						StrangeEonsEditor ed = StrangeEons.getActiveEditor();
-						if( ed instanceof AbstractGameComponentEditor ) {
-							((AbstractGameComponentEditor) ed).redrawPreview();
-						}
-					}
-				}
-				row = table.convertRowIndexToView( row );
-				table.getSelectionModel().setSelectionInterval( row, row );
-				refreshTable();
-			}
-		}
-	};
+                // don't redraw for projects!
+                if (source.getSelectedIndex() > 0) {
+                    editedSinceLastFocusLost = true;
+                    if (editMayAffectEditedComponent(key)) {
+                        StrangeEonsEditor ed = StrangeEons.getActiveEditor();
+                        if (ed instanceof AbstractGameComponentEditor) {
+                            ((AbstractGameComponentEditor) ed).redrawPreview();
+                        }
+                    }
+                }
+                row = table.convertRowIndexToView(row);
+                table.getSelectionModel().setSelectionInterval(row, row);
+                refreshTable();
+            }
+        }
+    };
 
-	private Settings getDefaultSettings() {
-		if( def == null ) {
-			def = new Settings();
-			try {
-				def.addSettingsFrom( "default.settings" );
-			} catch( IOException ex ) {
-				StrangeEons.log.log( Level.SEVERE, null, ex );
-			}
-		}
-		lastName = "Default Settings";
-		return def;
-	}
-	private Settings def;
+    private Settings getDefaultSettings() {
+        if (def == null) {
+            def = new Settings();
+            try {
+                def.addSettingsFrom("default.settings");
+            } catch (IOException ex) {
+                StrangeEons.log.log(Level.SEVERE, null, ex);
+            }
+        }
+        lastName = "Default Settings";
+        return def;
+    }
+    private Settings def;
 
-	private Settings getParent( Settings s ) {
-		if( s == getDefaultSettings() ) {
-			return null;
-		} else if( s == Settings.getShared() ) {
-			return getDefaultSettings();
-		} else {
-			return s.getParent();
-		}
-	}
+    private Settings getParent(Settings s) {
+        if (s == getDefaultSettings()) {
+            return null;
+        } else if (s == Settings.getShared()) {
+            return getDefaultSettings();
+        } else {
+            return s.getParent();
+        }
+    }
 
-	private Settings getShared() {
-		lastName = Settings.getShared().toString();
-		return Settings.getShared();
-	}
+    private Settings getShared() {
+        lastName = Settings.getShared().toString();
+        return Settings.getShared();
+    }
 
-	private Settings getUser() {
-		lastName = Settings.getUser().toString();
-		return Settings.getUser();
-	}
+    private Settings getUser() {
+        lastName = Settings.getUser().toString();
+        return Settings.getUser();
+    }
 
-	private Settings getProjectSettings() {
-		Project p = StrangeEons.getOpenProject();
-		if( p != null ) {
-			ProjectView v = p.getView();
-			if( v != null ) {
-				Member[] sel = v.getSelectedMembers();
-				for( int i=sel.length-1; i >= 0; --i ) {
-					if( sel[i] instanceof Task ) {
-						lastName = "Settings (" + ((Task) sel[i]).getName() + ")";
-						return ((Task) sel[i]).getSettings();
-					}
-				}
-			}
-		}
-		return null;
-	}
+    private Settings getProjectSettings() {
+        Project p = StrangeEons.getOpenProject();
+        if (p != null) {
+            ProjectView v = p.getView();
+            if (v != null) {
+                Member[] sel = v.getSelectedMembers();
+                for (int i = sel.length - 1; i >= 0; --i) {
+                    if (sel[i] instanceof Task) {
+                        lastName = "Settings (" + ((Task) sel[i]).getName() + ")";
+                        return ((Task) sel[i]).getSettings();
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
-	private Settings getGameSettings() {
-		Settings s = getComponentSettings();
-		if( s != null ) {
-			lastName = s.getParent().toString();
-			return s.getParent();
-		}
-		return null;
-	}
+    private Settings getGameSettings() {
+        Settings s = getComponentSettings();
+        if (s != null) {
+            lastName = s.getParent().toString();
+            return s.getParent();
+        }
+        return null;
+    }
 
-	private Settings getComponentSettings() {
-		StrangeEonsEditor ed = StrangeEons.getWindow().getActiveEditor();
-		if( ed != null ) {
-			if( ed.getGameComponent() != null ) {
-				lastName = "Private Settings (" + ed.getGameComponent().getFullName() + ")";
-				return ed.getGameComponent().getSettings();
-			}
-		}
-		return null;
-	}
+    private Settings getComponentSettings() {
+        StrangeEonsEditor ed = StrangeEons.getWindow().getActiveEditor();
+        if (ed != null) {
+            if (ed.getGameComponent() != null) {
+                lastName = "Private Settings (" + ed.getGameComponent().getFullName() + ")";
+                return ed.getGameComponent().getSettings();
+            }
+        }
+        return null;
+    }
 
-	private boolean editMayAffectEditedComponent( String key ) {
-		GameComponent gc = StrangeEons.getActiveGameComponent();
-		if( gc == null ) return false;
-		Settings s = gc.getSettings();
-		while( s != null ) {
-			if( s == current ) {
-				return true; // current value comes from the settings we are editing
-			}
-			if( s.getOverride(key) != null ) {
-				return false; // current value is hidden by intervening change
-			}
-			s = getParent(s);
-		}
-		return true; // key is new; probably won't affect component but can't be sure
-	}
+    private boolean editMayAffectEditedComponent(String key) {
+        GameComponent gc = StrangeEons.getActiveGameComponent();
+        if (gc == null) {
+            return false;
+        }
+        Settings s = gc.getSettings();
+        while (s != null) {
+            if (s == current) {
+                return true; // current value comes from the settings we are editing
+            }
+            if (s.getOverride(key) != null) {
+                return false; // current value is hidden by intervening change
+            }
+            s = getParent(s);
+        }
+        return true; // key is new; probably won't affect component but can't be sure
+    }
 
-	private String lastName;
+    private String lastName;
 
-	private boolean editedSinceLastFocusLost = false;
+    private boolean editedSinceLastFocusLost = false;
 }

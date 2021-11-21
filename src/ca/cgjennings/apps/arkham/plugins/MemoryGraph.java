@@ -30,206 +30,208 @@ import javax.swing.Timer;
  * Displays memory use as a graph; content for the memory use tool window.
  */
 final class MemoryGraph extends JComponent implements MouseListener {
-	private static final Color BACKGROUND = Color.DARK_GRAY;
-	private static final Color X_GRID_COLOR = Color.GRAY;
-	private static final Color Y_GRID_COLOR = Color.GRAY;
 
-	private static final Paint MEMORY_GRAPH = new LinearGradientPaint(
-			0f, 0f, 0f, 1f, new float[] {0f, 0.1f, 1f},
-			new Color[] { Color.WHITE, Color.YELLOW, Color.ORANGE.darker() }
-	);
+    private static final Color BACKGROUND = Color.DARK_GRAY;
+    private static final Color X_GRID_COLOR = Color.GRAY;
+    private static final Color Y_GRID_COLOR = Color.GRAY;
 
-	private static final BasicStroke QUARTER_STROKE = new BasicStroke(
-			1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
-			1f, new float[] { 2f, 2f }, 0f
-	);
+    private static final Paint MEMORY_GRAPH = new LinearGradientPaint(
+            0f, 0f, 0f, 1f, new float[]{0f, 0.1f, 1f},
+            new Color[]{Color.WHITE, Color.YELLOW, Color.ORANGE.darker()}
+    );
 
-	private static final int SAMPLES = 60;
-	private static final int LAST_SAMP = SAMPLES-1;
+    private static final BasicStroke QUARTER_STROKE = new BasicStroke(
+            1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
+            1f, new float[]{2f, 2f}, 0f
+    );
 
-	private static final int WIDTH = SAMPLES*3;
-	private static final int HEIGHT = 64;
+    private static final int SAMPLES = 60;
+    private static final int LAST_SAMP = SAMPLES - 1;
 
+    private static final int WIDTH = SAMPLES * 3;
+    private static final int HEIGHT = 64;
 
-	private double[] heapUse = new double[ SAMPLES ];
-	private double maxMem = 0d;
+    private double[] heapUse = new double[SAMPLES];
+    private double maxMem = 0d;
 
-	private ToolWindow owner;
-	private MemoryReadings readings;
+    private ToolWindow owner;
+    private MemoryReadings readings;
 
-	public MemoryGraph( ToolWindow tw, MemoryReadings readings ) {
-		setOpaque( true );
-		Dimension size = new Dimension( WIDTH, HEIGHT );
-		setPreferredSize( size );
-		setSize( size );
-		addMouseListener( this );
-		owner = tw;
+    public MemoryGraph(ToolWindow tw, MemoryReadings readings) {
+        setOpaque(true);
+        Dimension size = new Dimension(WIDTH, HEIGHT);
+        setPreferredSize(size);
+        setSize(size);
+        addMouseListener(this);
+        owner = tw;
 
-		setCursor( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );
+        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-		this.readings = readings;
-		updateTimer.start();
-	}
+        this.readings = readings;
+        updateTimer.start();
+    }
 
-	@Override
-	protected void paintComponent( Graphics g1 ) {
-		Graphics2D g = (Graphics2D) g1;
-		AffineTransform oldAT = g.getTransform();
+    @Override
+    protected void paintComponent(Graphics g1) {
+        Graphics2D g = (Graphics2D) g1;
+        AffineTransform oldAT = g.getTransform();
 
-		final int w = getWidth();
-		final int h = getHeight();
+        final int w = getWidth();
+        final int h = getHeight();
 
+        g.setPaint(BACKGROUND);
+        g.fillRect(0, 0, w, h);
 
-		g.setPaint( BACKGROUND );
-		g.fillRect( 0, 0, w, h );
+        g.scale((double) w / (SAMPLES - 1), (double) h);
 
-		g.scale( (double) w / (SAMPLES-1), (double) h );
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        if (memShape == null) {
+            memShape = makeGraph(heapUse, maxMem, true);
+            g.setPaint(MEMORY_GRAPH);
+            g.fill(memShape);
+        }
 
-		g.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
-		if( memShape == null ) {
-			memShape = makeGraph( heapUse, maxMem, true );
-			g.setPaint( MEMORY_GRAPH );
-			g.fill( memShape );
-		}
+        // DRAW X-AXIS GRID
+        Composite oldComp = g.getComposite();
+        Stroke oldStroke = g.getStroke();
 
-		// DRAW X-AXIS GRID
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        final float onePixelWide = (SAMPLES - 1) / w;
+        g.setStroke(new BasicStroke(onePixelWide));
+        g.setPaint(X_GRID_COLOR);
 
-		Composite oldComp = g.getComposite();
-		Stroke oldStroke = g.getStroke();
+        g.setComposite(gridComp);
+        for (int s = SAMPLES; s > 0; s -= 5) {
+            g.drawLine(s, 0, s, 1);
+        }
 
-		g.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF );
-		final float onePixelWide = (SAMPLES-1) / w;
-		g.setStroke( new BasicStroke( onePixelWide ) );
-		g.setPaint( X_GRID_COLOR );
+        g.setTransform(oldAT);
 
-		g.setComposite( gridComp );
-		for( int s=SAMPLES; s > 0; s -= 5 ) {
-			g.drawLine( s, 0, s, 1 );
-		}
+        // DRAW Y-AXIS GRID
+        g.setPaint(Y_GRID_COLOR);
+        final float hf = (float) h;
+        g.setStroke(QUARTER_STROKE);
+        int y = (int) (hf / 4f + 0.5f);
+        g.drawLine(0, y, w, y);
+        y = (int) (hf * 3f / 4f + 0.5f);
+        g.drawLine(0, y, w, y);
 
-		g.setTransform( oldAT );
+        g.setStroke(oldStroke);
+        y = (int) (hf / 2f + 0.5f);
+        g.drawLine(0, y, w, y);
 
+        g.setComposite(oldComp);
+        // DRAW MEMORY USE
+    }
 
-		// DRAW Y-AXIS GRID
+    private AlphaComposite gridComp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
 
-		g.setPaint( Y_GRID_COLOR );
-		final float hf = (float) h;
-		g.setStroke( QUARTER_STROKE );
-		int y = (int) (hf/4f + 0.5f);
-		g.drawLine( 0, y, w, y );
-		y = (int) (hf*3f/4f + 0.5f);
-		g.drawLine( 0, y, w, y );
+    private void takeSample() {
+        roll(heapUse);
 
-		g.setStroke( oldStroke );
-		y = (int) (hf/2f + 0.5f);
-		g.drawLine( 0, y, w, y );
+        MemoryUsage hUse = memBean.getHeapMemoryUsage();
+        MemoryUsage nUse = memBean.getNonHeapMemoryUsage();
 
-		g.setComposite( oldComp );
-		// DRAW MEMORY USE
-	}
+        double mem = hUse.getUsed() + nUse.getUsed();
+        maxMem = Math.max(mem, maxMem);
+        heapUse[LAST_SAMP] = mem;
 
-	private AlphaComposite gridComp = AlphaComposite.getInstance( AlphaComposite.SRC_OVER, 0.8f );
+        // old shapes are now invalid
+        memShape = null;
 
-	private void takeSample() {
-		roll( heapUse );
+        if (owner.isVisible()) {
+            repaint();
+            if (readings != null) {
+                readings.updateStats();
+            }
+        }
+    }
 
-		MemoryUsage hUse = memBean.getHeapMemoryUsage();
-		MemoryUsage nUse = memBean.getNonHeapMemoryUsage();
+    private Shape memShape;
 
-		double mem = hUse.getUsed() + nUse.getUsed();
-		maxMem = Math.max( mem, maxMem );
-		heapUse[ LAST_SAMP ] = mem;
+    private void roll(double[] samples) {
+        for (int i = 1; i < SAMPLES; ++i) {
+            samples[i - 1] = samples[i];
+        }
+    }
 
-		// old shapes are now invalid
-		memShape = null;
+    private Shape makeGraph(double[] samples, double max, boolean solid) {
+        Path2D.Double path = new Path2D.Double();
+        if (max == 0) {
+            return path;
+        }
 
-		if( owner.isVisible() ) {
-			repaint();
-			if( readings != null ) readings.updateStats();
-		}
-	}
+        if (solid) {
+            path.moveTo(0d, 1d);
+        } else {
+            path.moveTo(0d, 1d - samples[0] / max);
+        }
 
-	private Shape memShape;
+        for (int s = 0; s < samples.length; ++s) {
+            path.lineTo((double) s, 1d - samples[s] / max);
+        }
+        path.lineTo((double) LAST_SAMP, 1d);
+        path.closePath();
 
-	private void roll( double[] samples ) {
-		for( int i=1; i<SAMPLES; ++i ) {
-			samples[i-1] = samples[i];
-		}
-	}
+        return path;
+    }
 
-	private Shape makeGraph( double[] samples, double max, boolean solid ) {
-		Path2D.Double path = new Path2D.Double();
-		if( max == 0 ) return path;
+    private MemoryMXBean memBean = ManagementFactory.getMemoryMXBean();
 
-		if( solid ) {
-			path.moveTo( 0d, 1d );
-		} else {
-			path.moveTo( 0d, 1d-samples[0]/max );
-		}
+    private Timer updateTimer = new Timer(1000, new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            takeSample();
+        }
+    });
 
-		for( int s=0; s<samples.length; ++s ) {
-			path.lineTo( (double) s, 1d-samples[s]/max );
-		}
-		path.lineTo( (double) LAST_SAMP, 1d );
-		path.closePath();
+    public void dispose() {
+        updateTimer.stop();
+    }
 
-		return path;
-	}
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        if (clickTimer != null) {
+            return;
+        }
 
-	private MemoryMXBean memBean = ManagementFactory.getMemoryMXBean();
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        clickTimer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                memBean.gc();
+                memBean.gc();
+                if (count++ == 3) {
+                    setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                    clickTimer.stop();
+                    clickTimer = null;
+                }
+            }
+            private int count = 0;
+        });
+        clickTimer.start();
+    }
+    private Timer clickTimer;
 
+    @Override
+    public void mousePressed(MouseEvent e) {
+    }
 
-	private Timer updateTimer = new Timer( 1000, new ActionListener() {
-		@Override
-		public void actionPerformed( ActionEvent e ) {
-			takeSample();
-		}
-	});
+    @Override
+    public void mouseReleased(MouseEvent e) {
+    }
 
-	public void dispose() {
-		updateTimer.stop();
-	}
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        mouseOver = true;
+    }
 
+    @Override
+    public void mouseExited(MouseEvent e) {
+        mouseOver = false;
+    }
 
-	@Override
-	public void mouseClicked( MouseEvent e ) {
-		if( clickTimer != null ) return;
-
-		setCursor( Cursor.getPredefinedCursor( Cursor.WAIT_CURSOR ) );
-		clickTimer = new Timer( 1000, new ActionListener() {
-			@Override
-			public void actionPerformed( ActionEvent e ) {
-				memBean.gc();
-				memBean.gc();
-				if( count++ == 3 ) {
-					setCursor( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );
-					clickTimer.stop();
-					clickTimer = null;
-				}
-			}
-			private int count = 0;
-		});
-		clickTimer.start();
-	}
-	private Timer clickTimer;
-
-	@Override
-	public void mousePressed( MouseEvent e ) {}
-
-	@Override
-	public void mouseReleased( MouseEvent e ) {}
-
-	@Override
-	public void mouseEntered( MouseEvent e ) {
-		mouseOver = true;
-	}
-
-	@Override
-	public void mouseExited( MouseEvent e ) {
-		mouseOver = false;
-	}
-
-	private boolean mouseOver;
+    private boolean mouseOver;
 }
 /*
 
@@ -608,4 +610,4 @@ public class MemoryMonitor extends JLabel implements Plugin {
 	private static final int TEXT_SIZE = 12;
 }
 
-*/
+ */
