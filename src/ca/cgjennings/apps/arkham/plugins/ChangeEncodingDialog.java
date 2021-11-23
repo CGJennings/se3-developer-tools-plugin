@@ -60,22 +60,22 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
         }
     }
 
-    public void setFile(File f, Charset cs) {
-        this.file = f;
+    public void setFile(File file, Charset cs) {
+        this.file = file;
 
         // reset preview text and offset
         previewField.setText("");
 
         String windowTitle = ChangeEncodingAction.ACTION_NAME;
         setInfoText("", false);
-        if (f != null) {
+        if (file != null) {
             try {
-                fileBytes = Files.readAllBytes(f.toPath());
-                windowTitle += " — " + f.getName();
+                fileBytes = Files.readAllBytes(file.toPath());
+                windowTitle += " — " + file.getName();
 
                 if (cs == null) {
                     cs = StandardCharsets.UTF_8;
-                    CodeType ct = ChangeEncodingAction.guessCodeType(f);
+                    CodeType ct = ChangeEncodingAction.guessCodeType(file);
                     if (ct != null) cs = ct.getEncodingCharset();
                 }
 
@@ -85,7 +85,7 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
                 setInfoText("Unable to read input file", true);
                 StrangeEons.log.log(Level.WARNING, "unable to read text " + file, ioex);
                 fileBytes = null;
-                f = null;
+                file = null;
             }
         } else {
             setInfoText("", true);
@@ -410,6 +410,8 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_unescapeCheckActionPerformed
 
     private void saveBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveBtnActionPerformed
+        if (file == null) return;
+
         String text = previewField.getText();
         if (escapeCheck.isSelected()) {
             text = EscapedTextCodec.escapeUnicode(text);
