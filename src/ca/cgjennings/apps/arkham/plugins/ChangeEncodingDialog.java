@@ -7,6 +7,7 @@ import ca.cgjennings.ui.dnd.FileDrop;
 import ca.cgjennings.ui.theme.ThemeInstaller;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.io.BufferedWriter;
@@ -31,6 +32,8 @@ import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.text.BadLocationException;
 
 /**
@@ -100,6 +103,7 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
         return sel == null ? StandardCharsets.UTF_8 : sel;
     }
 
+    private boolean standalone = false;
     private File file;
     private byte[] fileBytes;
 
@@ -330,15 +334,15 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
                         .addGap(6, 6, 6))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel1)
-                                .addGap(129, 129, 129)
-                                .addComponent(jLabel2))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 195, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 195, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel1))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 195, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel2)
+                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 195, javax.swing.GroupLayout.PREFERRED_SIZE))))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -407,6 +411,7 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
 
     private void unescapeCheckActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_unescapeCheckActionPerformed
         inEncodingListValueChanged(null);
+        outEncodingListValueChanged(null);
     }//GEN-LAST:event_unescapeCheckActionPerformed
 
     private void saveBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveBtnActionPerformed
@@ -418,14 +423,19 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
         }
 
         Charset cs = getSelectedCharset(outEncodingList);
-        try (Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), cs))) {
+        try (FileOutputStream fout = new FileOutputStream(file)) {
+            Writer out = new BufferedWriter(new OutputStreamWriter(fout, cs));
             out.write(text);
+            out.flush();
         } catch (IOException ex) {
+            StrangeEons.log.log(Level.SEVERE, "failed to save file: {0}", ex.getLocalizedMessage());
             setInfoText(ex.getLocalizedMessage(), true);
             return;
         }
 
-        if ((evt.getModifiers() & ActionEvent.SHIFT_MASK) != ActionEvent.SHIFT_MASK) {
+        StrangeEons.log.log(Level.INFO, "wrote {0} with {1}{2}", new Object[]{file, cs, escapeCheck.isSelected() ? ", escapes" : ""});
+
+        if (standalone || (evt.getModifiers() & ActionEvent.SHIFT_MASK) != ActionEvent.SHIFT_MASK) {
             dispose();
         }
     }//GEN-LAST:event_saveBtnActionPerformed
@@ -451,12 +461,7 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
         infoLabel.setText(text);
         infoLabel.setForeground(error ? COLOR_ERROR : null);
         saveBtn.setEnabled(!error);
-        if (error) {
-            Toolkit.getDefaultToolkit().beep();
-        }
-        isShowingError = error;
     }
-    private boolean isShowingError = false;
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton closeBtn;
@@ -489,4 +494,18 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
             return this;
         }
     };
+
+    /** Runs the change text encoding feature as a standalone tool. */
+    public static void main(String[] argv) {
+        EventQueue.invokeLater(()->{
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch(ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException ex) {
+                // use default
+            }
+            ChangeEncodingDialog d = new ChangeEncodingDialog(null, null, null);
+            d.standalone = true;
+            d.setVisible(true);
+        });
+    }
 }
