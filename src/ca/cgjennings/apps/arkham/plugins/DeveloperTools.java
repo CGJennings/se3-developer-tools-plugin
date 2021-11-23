@@ -6,7 +6,9 @@ import ca.cgjennings.apps.arkham.StrangeEonsAppWindow;
 import ca.cgjennings.apps.arkham.commands.AbstractCommand;
 import ca.cgjennings.apps.arkham.commands.Commands;
 import static ca.cgjennings.apps.arkham.plugins.Plugin.INJECTED;
+import ca.cgjennings.apps.arkham.project.Actions;
 import ca.cgjennings.apps.arkham.project.NewTaskType;
+import ca.cgjennings.apps.arkham.project.TaskAction;
 import gamedata.Expansion;
 import javax.swing.Icon;
 import javax.swing.JCheckBoxMenuItem;
@@ -50,6 +52,7 @@ public class DeveloperTools extends AbstractPlugin {
         // force the expansion symbol MIP map cache to register itself
         ca.cgjennings.apps.arkham.sheet.Sheet.getExpansionSymbol(Expansion.getBaseGameExpansion(), "0", 100);
 
+        registerChangeEncodingAction(true);
         registerCatalogTask(true);
         registerRegionBoxesCommand(true);
         registerToolWindows(true);
@@ -59,6 +62,7 @@ public class DeveloperTools extends AbstractPlugin {
 
     @Override
     public void unloadPlugin() {
+        registerChangeEncodingAction(false);
         registerCatalogTask(false);
         registerRegionBoxesCommand(false);
         registerToolWindows(false);
@@ -66,6 +70,24 @@ public class DeveloperTools extends AbstractPlugin {
         loaded = false;
     }
     private boolean loaded;
+
+    private void registerChangeEncodingAction(boolean register) {
+        if (register) {
+            if (changeEncodingAction == null) {
+                changeEncodingAction = new ChangeEncodingAction();
+                Actions.register(changeEncodingAction, Actions.PRIORITY_IMPORT_EXPORT);
+            }
+        } else {
+            if (changeEncodingAction != null) {
+                try {
+                    Actions.unregister(changeEncodingAction);
+                } finally {
+                    changeEncodingAction = null;
+                }
+            }
+        }
+    }
+    private TaskAction changeEncodingAction;
 
     private void registerCatalogTask(boolean register) {
         if (register) {
