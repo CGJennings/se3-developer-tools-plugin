@@ -8,6 +8,7 @@ import ca.cgjennings.ui.theme.ThemeInstaller;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -61,6 +62,10 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
 
     public void setFile(File f, Charset cs) {
         this.file = f;
+
+        // reset preview text and offset
+        previewField.setText("");
+
         String windowTitle = ChangeEncodingAction.ACTION_NAME;
         setInfoText("", false);
         if (f != null) {
@@ -277,6 +282,11 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
         });
 
         escapeCheck.setText("Use \\uxxxx escape sequences when overwriting");
+        escapeCheck.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                escapeCheckActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -378,9 +388,13 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
         if (file == null) return;
 
         // check if can encode to this charset
+        String text = previewField.getText();
+        if (escapeCheck.isSelected()) {
+            text = EscapedTextCodec.escapeUnicode(text);
+        }
         Charset cs = getSelectedCharset(outEncodingList);
         CharsetEncoder encoder = cs.newEncoder();
-        if (!encoder.canEncode(previewField.getText())) {
+        if (!encoder.canEncode(text)) {
             setInfoText("Text is incompatible with output encoding", true);
         } else {
             setInfoText("", false);
@@ -408,8 +422,15 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
             setInfoText(ex.getLocalizedMessage(), true);
             return;
         }
-        dispose();
+
+        if ((evt.getModifiers() & ActionEvent.SHIFT_MASK) != ActionEvent.SHIFT_MASK) {
+            dispose();
+        }
     }//GEN-LAST:event_saveBtnActionPerformed
+
+    private void escapeCheckActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_escapeCheckActionPerformed
+        outEncodingListValueChanged(null);
+    }//GEN-LAST:event_escapeCheckActionPerformed
 
     private final Color COLOR_ERROR;
     {
