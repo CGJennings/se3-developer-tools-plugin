@@ -70,7 +70,7 @@ public class CutCornersPanel extends javax.swing.JPanel implements DevToolProxy.
 
         jLabel1.setText("Adjust corner cut radius:");
 
-        radiusSpinner.setModel(new javax.swing.SpinnerNumberModel(0.0d, 0.0d, 72.0d, 0.5d));
+        radiusSpinner.setModel(new javax.swing.SpinnerNumberModel(0.0d, 0.0d, 144.0d, 0.25d));
         radiusSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 radiusSpinnerStateChanged(evt);
