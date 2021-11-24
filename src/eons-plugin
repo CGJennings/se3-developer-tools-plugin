@@ -9,11 +9,14 @@ ca.cgjennings.apps.arkham.plugins.DeveloperTools
 catalog-minver = 4000
 
 catalog-name = Developer Tools
-catalog-description = Additional tools that support plug-in development, \
-    including a memory use monitor, cache manager, setting explorer, \
-    plug-in catalog tools, and the <b>Region Boxes</b> view menu item. \
-    <p><b>Recent changes:</b><ol>\
-    <li>Added a project action to preview or change text file encodings.</ol>\
-    <p><b>Note:</b> If you have an existing catalog tools task, you can update \
+catalog-description = Additional tools that support plug-in development: <ol>\
+    <li>the <b>Window/Setting Explorer</b> tool, to view and edit component and other settings \
+    <li>the <b>Window/Cut Corners</b> tool, to interactively determine the ideal corner radius of a sheet design \
+    <li>the <b>Window/Memory Use</b> tool \
+    <li>the <b>Window/Cache Manager</b> tool \
+    <li>the <b>Change Encoding</b> project action, to interactively change the encoding of text files \
+    <li>the <b>Local Catalogue</b> project task, to install tools to manage a private catalog \
+    <li>the <b>View/Region Boxes</b> command \
+    </ol><p><b>Tip:</b> If you have an existing catalog tools task, you can update \
     it by creating a new task and copying the <tt>.ajs</tt> script files into the \
     existing task folder.
