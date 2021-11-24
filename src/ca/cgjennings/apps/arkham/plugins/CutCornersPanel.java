@@ -48,7 +48,6 @@ public class CutCornersPanel extends javax.swing.JPanel implements DevToolProxy.
             GameComponent gc = ed.getGameComponent();
             if (gc != null && gc.getSheets() != null && gc.getSheets().length > 0) {
                 enable = true;
-                radiusSpinner.setEnabled(true);
                 radiusSpinner.setValue(gc.getSheets()[0].getCornerRadius());
             }
         }
