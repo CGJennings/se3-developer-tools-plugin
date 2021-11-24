@@ -19,7 +19,7 @@ import resources.ResourceKit;
 /**
  * The plug-in instance that installs/uninstalls the developer tool suites.
  *
- * @author Christopher G. Jennings (cjennings@acm.org)
+ * @author Christopher G. Jennings (<https://cgjennings.ca/contact>)
  */
 public class DeveloperTools extends AbstractPlugin {
 
@@ -147,31 +147,33 @@ public class DeveloperTools extends AbstractPlugin {
 
     private void registerToolWindows(boolean register) {
         if (register) {
-            if (proxies != null) {
+            if (toolWindows != null) {
                 registerToolWindows(false);
             }
 
-            proxies = new DevToolProxy[4];
+            final String[] toolTypes = new String[] {
+                "Setting Explorer",
+                "Cache Manager",
+                "Memory Use",
+                "Log Viewer"
+            };
 
-            proxies[0] = new DevToolProxy("Setting Explorer", 2f);
-            proxies[1] = new DevToolProxy("Cache Manager", 1f);
-            proxies[2] = new MemoryUseProxy();
-            proxies[3] = new DevToolProxy("Log Viewer", 3f);
-
-            for (int i = 0; i < proxies.length; ++i) {
-                StrangeEons.getWindow().startTracking(proxies[i]);
+            toolWindows = new DevToolProxy[toolTypes.length];
+            for (int p=0; p<toolWindows.length; ++p) {
+                toolWindows[p] = new DevToolProxy(toolTypes[p], (float) p);
+                StrangeEons.getWindow().startTracking(toolWindows[p]);
             }
         } else {
-            if (proxies != null) {
-                for (int i = 0; i < proxies.length; ++i) {
-                    if (proxies[i] != null) {
-                        StrangeEons.getWindow().stopTracking(proxies[i]);
-                        proxies[i].unload();
+            if (toolWindows != null) {
+                for (int i = 0; i < toolWindows.length; ++i) {
+                    if (toolWindows[i] != null) {
+                        StrangeEons.getWindow().stopTracking(toolWindows[i]);
+                        toolWindows[i].unload();
                     }
                 }
-                proxies = null;
+                toolWindows = null;
             }
         }
     }
-    private DevToolProxy[] proxies;
+    private DevToolProxy[] toolWindows;
 }

@@ -48,7 +48,7 @@ import resources.Settings;
 /**
  * Panel that contains the setting explorer controls and logic.
  *
- * @author Christopher G. Jennings (cjennings@acm.org)
+ * @author Christopher G. Jennings (<https://cgjennings.ca/contact>)
  * @version 1.0
  */
 final class SettingExplorerPanel extends javax.swing.JPanel {

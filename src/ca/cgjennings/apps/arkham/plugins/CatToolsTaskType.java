@@ -11,7 +11,7 @@ import java.io.IOException;
  * Task type for creating catalog tasks. Used to create private plug-in catalogs
  * or test how plug-ins will appear in a catalog.
  *
- * @author Christopher G. Jennings (cjennings@acm.org)
+ * @author Christopher G. Jennings (<https://cgjennings.ca/contact>)
  */
 final class CatToolsTaskType extends NewTaskType {
 

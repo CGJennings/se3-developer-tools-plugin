@@ -11,6 +11,8 @@ import java.awt.Insets;
 import java.awt.Rectangle;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JPanel;
 import resources.ResourceKit;
 import resources.Settings;
@@ -20,7 +22,7 @@ import resources.Settings;
  * is created automatically using the supplied window title as the basis for the
  * name of the Panel class to load for the window content.
  *
- * @author Christopher G. Jennings (cjennings@acm.org)
+ * @author Christopher G. Jennings (<https://cgjennings.ca/contact>)
  */
 class DevToolProxy extends TrackedWindowProxy {
 
@@ -29,7 +31,7 @@ class DevToolProxy extends TrackedWindowProxy {
 
     public DevToolProxy(String windowTitle, float defaultWindowOffsetMultiplier) {
         super(windowTitle, ResourceKit.getIcon(
-                "/resources/cgj/devtools/" + windowTitle.toLowerCase(Locale.CANADA).replace(' ', '-') + ".png")
+                "/resources/cgj/devtools/" + windowTitle.toLowerCase(Locale.ROOT).replace(' ', '-') + ".png")
         );
         offsetMultiplier = defaultWindowOffsetMultiplier;
     }
@@ -60,6 +62,9 @@ class DevToolProxy extends TrackedWindowProxy {
     public void unload() {
         if (tw != null) {
             Settings.getUser().storeWindowSettings(windowPrefix(), tw);
+            if (tw.getBodyPanel() instanceof UnloadablePanel) {
+                ((UnloadablePanel) tw.getBodyPanel()).onUnload();
+            }
             tw.close();
         }
     }
@@ -82,5 +87,13 @@ class DevToolProxy extends TrackedWindowProxy {
 
     private String windowPrefix() {
         return "devtools-" + getTitle().replace(" ", "").toLowerCase(Locale.CANADA);
+    }
+
+    /**
+     * Interface which can be implemented by content panels if they need
+     * to know when they are unloaded.
+     */
+    public static interface UnloadablePanel {
+        void onUnload();
     }
 }

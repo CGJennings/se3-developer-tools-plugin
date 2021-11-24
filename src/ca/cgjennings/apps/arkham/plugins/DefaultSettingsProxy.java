@@ -10,7 +10,7 @@ import resources.Settings;
  * implements enough of the <code>Setting</code> API to be used by the Setting
  * Explorer.
  *
- * @author Christopher G. Jennings (cjennings@acm.org)
+ * @author Christopher G. Jennings (<https://cgjennings.ca/contact>)
  * @since 3.0
  */
 final class DefaultSettingsProxy extends Settings {

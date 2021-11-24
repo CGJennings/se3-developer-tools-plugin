@@ -18,7 +18,7 @@ import javax.swing.text.Document;
 /**
  * Displays the application log content.
  *
- * @author Christopher G. jennings (cjennings@acm.org)
+ * @author Christopher G. jennings (<https://cgjennings.ca/contact>)
  */
 public class LogViewerPanel extends javax.swing.JPanel {
 

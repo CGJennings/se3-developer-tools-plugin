@@ -8,10 +8,9 @@ import javax.swing.JPanel;
  * The panel that combines the memory graph and readings bar to create the
  * memory use window.
  *
- * @author Christopher G. Jennings (cjennings@acm.org)
+ * @author Christopher G. Jennings (<https://cgjennings.ca/contact>)
  */
-final class MemoryUsePanel extends JPanel {
-
+final class MemoryUsePanel extends JPanel implements DevToolProxy.UnloadablePanel {
     public MemoryUsePanel(ToolWindow tw) {
         tw.setSize(400, 100);
         BorderLayout bl = new BorderLayout();
@@ -20,5 +19,10 @@ final class MemoryUsePanel extends JPanel {
         readings.updateStats();
         add(new MemoryGraph(tw, readings), BorderLayout.CENTER);
         add(readings, BorderLayout.SOUTH);
+    }
+
+    @Override
+    public void onUnload() {
+        ((MemoryGraph) getComponent(0)).dispose();
     }
 }
