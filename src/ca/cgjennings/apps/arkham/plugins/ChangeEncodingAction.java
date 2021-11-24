@@ -16,6 +16,7 @@ import java.nio.charset.Charset;
  * @author Chris Jennings <https://cgjennings.ca/contact>
  */
 public class ChangeEncodingAction extends TaskAction {
+
     public static final String ACTION_NAME = "Change Text Encoding";
 
     @Override
@@ -33,15 +34,19 @@ public class ChangeEncodingAction extends TaskAction {
 
     @Override
     public boolean appliesTo(Project project, Task task, Member member) {
-        if (member == null) return false;
+        if (member == null) {
+            return false;
+        }
         return guessCodeType(member.getFile()) != null;
     }
 
     static CodeType guessCodeType(File f) {
         if (f != null) {
             String ext = ProjectUtilities.getFileExtension(f);
-            for (int i=0; i<types.length; ++i) {
-                if (types[i].getExtension().equals(ext)) return types[i];
+            for (int i = 0; i < types.length; ++i) {
+                if (types[i].getExtension().equals(ext)) {
+                    return types[i];
+                }
             }
         }
         return null;
