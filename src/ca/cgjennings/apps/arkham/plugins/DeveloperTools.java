@@ -9,7 +9,9 @@ import static ca.cgjennings.apps.arkham.plugins.Plugin.INJECTED;
 import ca.cgjennings.apps.arkham.project.Actions;
 import ca.cgjennings.apps.arkham.project.NewTaskType;
 import ca.cgjennings.apps.arkham.project.TaskAction;
+import ca.cgjennings.apps.arkham.sheet.Sheet;
 import gamedata.Expansion;
+import java.lang.reflect.Method;
 import javax.swing.Icon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
@@ -151,16 +153,17 @@ public class DeveloperTools extends AbstractPlugin {
                 registerToolWindows(false);
             }
 
-            final String[] toolTypes = new String[] {
+            final String[] toolTypes = new String[]{
                 "Setting Explorer",
                 "Cache Manager",
                 "Memory Use",
-                "Log Viewer"
+                "Log Viewer",
+                StrangeEons.getBuildNumber() > 4204 ? "Cut Corners" : null
             };
 
             toolWindows = new DevToolProxy[toolTypes.length];
-            for (int p=0; p<toolWindows.length; ++p) {
-                toolWindows[p] = new DevToolProxy(toolTypes[p], (float) p);
+            for (int p = 0; p < toolWindows.length; ++p) {
+                toolWindows[p] = toolTypes[p] == null ? null : new DevToolProxy(toolTypes[p], p);
                 StrangeEons.getWindow().startTracking(toolWindows[p]);
             }
         } else {

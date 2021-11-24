@@ -38,11 +38,10 @@ class DevToolProxy extends TrackedWindowProxy {
 
     @Override
     public Object createWindow() {
+        final String className = getClass().getPackage().getName() + '.' + getTitle().replace(" ", "") + "Panel";
         try {
             tw = new ToolWindow(StrangeEons.getWindow(), getTitle(), Dialog.ModalityType.MODELESS);
-            Class panelClass = Class.forName(
-                    getClass().getPackage().getName() + '.' + getTitle().replace(" ", "") + "Panel"
-            );
+            Class panelClass = Class.forName(className);
             JPanel content = (JPanel) panelClass.getConstructor(ToolWindow.class).newInstance(tw);
             tw.setBody(content);
             tw.setIcon(getIcon());
@@ -51,7 +50,7 @@ class DevToolProxy extends TrackedWindowProxy {
             }
             return tw;
         } catch (InvocationTargetException | NoSuchMethodException | ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
-            throw new AssertionError("failed to instantiate panel " + getTitle(), ex);
+            throw new AssertionError("failed to instantiate panel " + getTitle() + " (" + className + ')', ex);
         }
     }
 
@@ -90,10 +89,11 @@ class DevToolProxy extends TrackedWindowProxy {
     }
 
     /**
-     * Interface which can be implemented by content panels if they need
-     * to know when they are unloaded.
+     * Interface which can be implemented by content panels if they need to know
+     * when they are unloaded.
      */
     public static interface UnloadablePanel {
+
         void onUnload();
     }
 }

@@ -79,7 +79,9 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
                 if (cs == null) {
                     cs = StandardCharsets.UTF_8;
                     CodeType ct = ChangeEncodingAction.guessCodeType(file);
-                    if (ct != null) cs = ct.getEncodingCharset();
+                    if (ct != null) {
+                        cs = ct.getEncodingCharset();
+                    }
                 }
 
                 inEncodingList.setSelectedValue(cs, true);
@@ -389,7 +391,9 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_inEncodingListValueChanged
 
     private void outEncodingListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_outEncodingListValueChanged
-        if (file == null) return;
+        if (file == null) {
+            return;
+        }
 
         // check if can encode to this charset
         String text = previewField.getText();
@@ -415,7 +419,9 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_unescapeCheckActionPerformed
 
     private void saveBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveBtnActionPerformed
-        if (file == null) return;
+        if (file == null) {
+            return;
+        }
 
         String text = previewField.getText();
         if (escapeCheck.isSelected()) {
@@ -445,6 +451,7 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_escapeCheckActionPerformed
 
     private final Color COLOR_ERROR;
+
     {
         Color red = Color.RED;
         try {
@@ -453,7 +460,8 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
             } else {
                 red = red.darker();
             }
-        } catch (Throwable t) {}
+        } catch (Throwable t) {
+        }
         COLOR_ERROR = red;
     }
 
@@ -495,12 +503,14 @@ public final class ChangeEncodingDialog extends javax.swing.JDialog {
         }
     };
 
-    /** Runs the change text encoding feature as a standalone tool. */
+    /**
+     * Runs the change text encoding feature as a standalone tool.
+     */
     public static void main(String[] argv) {
-        EventQueue.invokeLater(()->{
+        EventQueue.invokeLater(() -> {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch(ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException ex) {
+            } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException ex) {
                 // use default
             }
             ChangeEncodingDialog d = new ChangeEncodingDialog(null, null, null);
