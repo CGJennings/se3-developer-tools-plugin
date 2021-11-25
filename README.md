@@ -11,7 +11,7 @@ The plug-in expects the Strange Eons repository to be in a sibling directory, li
 ```
 your-projects-directory/
   strange-eons/
-  se3-developert-tools-plugin/
+  se3-developer-tools-plugin/
 ```
 
 After a successful build, the plug-in will be written to the `dist` folder.
