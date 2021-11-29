@@ -61,8 +61,9 @@ class DevToolProxy extends TrackedWindowProxy {
     public void unload() {
         if (tw != null) {
             Settings.getUser().storeWindowSettings(windowPrefix(), tw);
-            if (tw.getBodyPanel() instanceof UnloadablePanel) {
-                ((UnloadablePanel) tw.getBodyPanel()).onUnload();
+            final JPanel body = tw.getBodyPanel();
+            if (body instanceof UnloadablePanel) {
+                ((UnloadablePanel) body).onUnload();
             }
             tw.close();
         }

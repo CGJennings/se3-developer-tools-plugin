@@ -7,6 +7,7 @@ import ca.cgjennings.apps.arkham.StrangeEonsEditor;
 import ca.cgjennings.apps.arkham.ToolWindow;
 import ca.cgjennings.apps.arkham.component.GameComponent;
 import ca.cgjennings.apps.arkham.sheet.Sheet;
+import java.lang.reflect.Method;
 
 /**
  * Allows interactive adjustment of a sheet's corner cut radius.
@@ -48,7 +49,7 @@ public class CutCornersPanel extends javax.swing.JPanel implements DevToolProxy.
             GameComponent gc = ed.getGameComponent();
             if (gc != null && gc.getSheets() != null && gc.getSheets().length > 0) {
                 enable = true;
-                radiusSpinner.setValue(gc.getSheets()[0].getCornerRadius());
+                radiusSpinner.setValue(safeGetRadius(gc.getSheets()[0]));
             }
         }
         radiusSpinner.setEnabled(enable);
@@ -113,7 +114,7 @@ public class CutCornersPanel extends javax.swing.JPanel implements DevToolProxy.
             if (gc != null && gc.getSheets() != null) {
                 final double radius = (double) radiusSpinner.getValue();
                 for (Sheet<?> s : gc.getSheets()) {
-                    s.setCornerRadius(radius);
+                    safeSetRadius(s, radius);
                 }
                 if (ed instanceof AbstractGameComponentEditor) {
                     ((AbstractGameComponentEditor<?>) ed).redrawPreview();
@@ -121,6 +122,26 @@ public class CutCornersPanel extends javax.swing.JPanel implements DevToolProxy.
             }
         }
     }//GEN-LAST:event_radiusSpinnerStateChanged
+
+    private static void safeSetRadius(Sheet s, double radius) {
+        try {
+            Method m = s.getClass().getMethod("setCornerRadius", double.class);
+            m.invoke(s, radius);
+        } catch (Exception ex) {
+            // ignore
+        }
+    }
+
+    private static double safeGetRadius(Sheet s) {
+        try {
+            Method m = s.getClass().getMethod("getCornerRadius");
+            Object val = m.invoke(s);
+            return (Double) val;
+        } catch (Exception ex) {
+            // ignore
+        }
+        return 0d;
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JSpinner radiusSpinner;

@@ -236,7 +236,7 @@ final class SettingExplorerPanel extends javax.swing.JPanel {
         jLabel1.setText("Source");
 
         source.setFont(source.getFont().deriveFont(source.getFont().getSize()-1f));
-        source.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Task Settings for Selected Project Member", "Default Settings", "└ Shared Settings", "    └ Master Settings for Game of Current Game Component", "        └ Private Settings of Current Game Component", "User Settings" }));
+        source.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Task Settings for Selected Project Member", "Default Settings", "└ Shared Settings", "    └ Settings for Game of Current Game Component", "        └ Private Settings of Current Game Component", "User Settings" }));
         source.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 sourceActionPerformed(evt);
